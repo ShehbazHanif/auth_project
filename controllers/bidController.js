@@ -1,7 +1,7 @@
 const Bid = require("../models/bidModel");
 const Project = require("../models/projectModel");
 
-// 💼 Developer places a bid on a project
+//  Developer places a bid on a project
 const placeBid = async (req, res) => {
   try {
     const { projectId, developerId, bidAmount, message } = req.body;

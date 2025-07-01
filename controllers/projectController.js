@@ -1,6 +1,6 @@
 const Project = require("../models/projectModel");
 
-// 🎯 Create a new project (by User)
+//  Create a new project (by User)
 const createProject = async (req, res) => {
   try {
     const { userId, title, description, techStack, estimatedBudget } = req.body;
@@ -25,7 +25,7 @@ const createProject = async (req, res) => {
   }
 };
 
-// 📂 Get all open projects (for Developer)
+//  Get all open projects (for Developer)
 const getOpenProjects = async (req, res) => {
   try {
     const projects = await Project.find({ status: "open" }).populate("userId", "name email");

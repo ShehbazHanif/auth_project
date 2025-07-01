@@ -1,5 +1,5 @@
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+const generateToken = require('../utils/generateToken');
 const User = require("../models/userModel");
 const Developer = require("../models/developerUser");
 
@@ -71,7 +71,7 @@ const loginUser = async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ success: false, message: "Invalid password" });
 
-    const token = generateToken(user._id);
+    const token = generateToken(user._id ,user.email ,user.name);
 
     res.json({
       success: true,
@@ -95,7 +95,7 @@ const loginDeveloper = async (req, res) => {
     const match = await bcrypt.compare(password, developer.password);
     if (!match) return res.status(401).json({ success: false, message: "Invalid password" });
 
-    const token = generateToken(developer._id);
+    const token = generateToken(developer._id ,developer.email , developer.name);
 
     res.json({
       success: true,
