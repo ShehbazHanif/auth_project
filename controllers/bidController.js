@@ -1,30 +1,65 @@
-const Bid = require("../models/bidModel");
-const Project = require("../models/projectModel");
+const Bid = require("../models/bidsModel");
+const handleError = require("../utils/errorHandling");
 
-//  Developer places a bid on a project
+// ========== CREATE / PLACE A BID ==========
 const placeBid = async (req, res) => {
   try {
     const { projectId, developerId, bidAmount, message } = req.body;
 
-    // ✅ Optional: Check if project exists and is open
-    const project = await Project.findById(projectId);
-    if (!project || project.status !== "open") {
-      return res.status(400).json({ success: false, message: "Invalid or closed project." });
-    }
-
-    // ✅ Create the bid
     const bid = await Bid.create({ projectId, developerId, bidAmount, message });
 
     res.status(201).json({
       success: true,
       message: "Bid placed successfully",
-      bid,
+      data: bid,
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Failed to place bid", error: err.message });
+    handleError(res, err, 500);
+  }
+};
+
+// ========== GET ALL BIDS ==========
+const getAllBids = async (req, res) => {
+  try {
+    const bids = await Bid.find().populate("projectId").populate("developerId");
+    res.json({ success: true, data: bids });
+  } catch (err) {
+    handleError(res, err, 500);
+  }
+};
+
+// ========== UPDATE A BID ==========
+const updateBid = async (req, res) => {
+  try {
+    const updated = await Bid.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updated) return res.status(404).json({ success: false, message: "Bid not found" });
+
+    res.json({ success: true, message: "Bid updated", data: updated });
+  } catch (err) {
+    handleError(res, err, 500);
+  }
+};
+
+// ========== DELETE A BID ==========
+const deleteBid = async (req, res) => {
+  try {
+    const deleted = await Bid.findByIdAndDelete(req.params.id);
+
+    if (!deleted) return res.status(404).json({ success: false, message: "Bid not found" });
+
+    res.json({ success: true, message: "Bid deleted" });
+  } catch (err) {
+    handleError(res, err, 500);
   }
 };
 
 module.exports = {
   placeBid,
+  getAllBids,
+  updateBid,
+  deleteBid,
 };

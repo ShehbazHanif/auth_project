@@ -1,8 +1,9 @@
 const bcrypt = require("bcryptjs");
-const generateToken = require('../utils/generateToken');
+const generateToken = require("../utils/generateToken");
+const handleError = require("../utils/errorHandling");
+
 const User = require("../models/userModel");
 const Developer = require("../models/developerUser");
-
 
 // ========== USER SIGNUP ==========
 const signupUser = async (req, res) => {
@@ -23,7 +24,7 @@ const signupUser = async (req, res) => {
       data: { id: user._id, name: user.name, email: user.email },
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Signup failed", error: err.message });
+    handleError(res, err, 500);
   }
 };
 
@@ -38,9 +39,7 @@ const signupDeveloper = async (req, res) => {
     }
 
     const hashed = await bcrypt.hash(password, 10);
-
-    // Split skills string into an array (and trim each skill)
-    const skillArray = skills.split(',').map(skill => skill.trim());
+    const skillArray = skills.split(",").map(skill => skill.trim());
 
     const developer = await Developer.create({
       name,
@@ -55,23 +54,22 @@ const signupDeveloper = async (req, res) => {
       data: { id: developer._id, name: developer.name, email: developer.email },
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Signup failed", error: err.message });
+    handleError(res, err, 500);
   }
 };
-
 
 // ========== USER LOGIN ==========
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
 
+    const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ success: false, message: "Invalid password" });
 
-    const token = generateToken(user._id ,user.email ,user.name);
+    const token = generateToken(user._id, user.email, user.name);
 
     res.json({
       success: true,
@@ -80,7 +78,7 @@ const loginUser = async (req, res) => {
       user: { id: user._id, name: user.name, email: user.email },
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Login failed", error: err.message });
+    handleError(res, err, 500);
   }
 };
 
@@ -88,14 +86,14 @@ const loginUser = async (req, res) => {
 const loginDeveloper = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const developer = await Developer.findOne({ email });
 
+    const developer = await Developer.findOne({ email });
     if (!developer) return res.status(404).json({ success: false, message: "Developer not found" });
 
     const match = await bcrypt.compare(password, developer.password);
     if (!match) return res.status(401).json({ success: false, message: "Invalid password" });
 
-    const token = generateToken(developer._id ,developer.email , developer.name);
+    const token = generateToken(developer._id, developer.email, developer.name);
 
     res.json({
       success: true,
@@ -104,7 +102,68 @@ const loginDeveloper = async (req, res) => {
       developer: { id: developer._id, name: developer.name, email: developer.email },
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Login failed", error: err.message });
+    handleError(res, err, 500);
+  }
+};
+
+// ========== UPDATE USER ==========
+const updateUser = async (req, res) => {
+  try {
+    const updated = await User.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    res.json({
+      success: true,
+      message: "User updated successfully",
+      data: updated,
+    });
+  } catch (err) {
+    handleError(res, err, 500);
+  }
+};
+
+// ========== UPDATE DEVELOPER ==========
+const updateDeveloper = async (req, res) => {
+  try {
+    const body = { ...req.body };
+    if (body.skills && typeof body.skills === "string") {
+      body.skills = body.skills.split(",").map(skill => skill.trim());
+    }
+
+    const updated = await Developer.findByIdAndUpdate(req.params.id, body, {
+      new: true,
+      runValidators: true,
+    });
+
+    res.json({
+      success: true,
+      message: "Developer updated successfully",
+      data: updated,
+    });
+  } catch (err) {
+    handleError(res, err, 500);
+  }
+};
+
+// ========== DELETE USER ==========
+const deleteUser = async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: "User deleted successfully" });
+  } catch (err) {
+    handleError(res, err, 500);
+  }
+};
+
+// ========== DELETE DEVELOPER ==========
+const deleteDeveloper = async (req, res) => {
+  try {
+    await Developer.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: "Developer deleted successfully" });
+  } catch (err) {
+    handleError(res, err, 500);
   }
 };
 
@@ -113,4 +172,8 @@ module.exports = {
   signupDeveloper,
   loginUser,
   loginDeveloper,
+  updateUser,
+  updateDeveloper,
+  deleteUser,
+  deleteDeveloper,
 };

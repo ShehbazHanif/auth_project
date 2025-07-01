@@ -1,32 +1,25 @@
-// validators/authSchemas.js
 const { z } = require("zod");
+
+const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,}$/;
+// Minimum six characters, at least one letter and one number
 
 const signupUserSchema = z.object({
   name: z.string(),
   email: z.string().email(),
-  password: z.string().min(6),
+  password: z.string().regex(passwordRegex, "Password must be at least 6 characters long and contain a number."),
 });
 
 const signupDeveloperSchema = signupUserSchema.extend({
-  skills: z.array(z.string()),
+  skills: z.array(z.string().min(1, "Skill cannot be empty")),
 });
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string(),
+  password: z.string().min(1, "Password is required"),
 });
-const validate = (schema) => (req, res, next) => {
-  try {
-    req.body = schema.parse(req.body);
-    next();
-  } catch (err) {
-    res.status(400).json({ error: err.errors });
-  }
-};
 
 module.exports = {
   signupUserSchema,
   signupDeveloperSchema,
   loginSchema,
-  validate
 };

@@ -1,11 +1,25 @@
 const express = require("express");
-const projectRouter = express.Router();
-const { createProject, getOpenProjects } = require("../controllers/projectController");
+const router = express.Router();
+const validate = require("../middleware/validate");
+const { projectSchema } = require("../validation/projectValidation");
+const {
+  createProject,
+  getOpenProjects,
+  updateProject,
+  deleteProject,
+} = require("../controllers/projectController");
 
-//  User creates a project
-projectRouter.post("/create", createProject);
+// ========== CREATE NEW PROJECT ==========
+router.post("/",validate(projectSchema), createProject);
 
-//  Developer views open projects
-projectRouter.outer.get("/open", getOpenProjects);
+// ========== GET ALL OPEN PROJECTS ==========
+router.get("/", getOpenProjects);
 
-module.exports = projectRouter;
+
+// ========== UPDATE PROJECT ==========
+router.patch("/:id", updateProject);
+
+// ========== DELETE PROJECT ==========
+router.delete("/:id", deleteProject);
+
+module.exports = router;
